@@ -85,6 +85,18 @@
     Parse.initialize("RUHJpMwVI7DKx9fwLavWYET1SVd9asv1Glu4ogTG", "6AwekARF38BVJikYvvE6TgpwiIf7m22Xldgw5ulN");
     var Post = Parse.Object.extend("Post");
 
+    var gQuery = new Parse.Query("Post");
+	gQuery.equalTo("objectId","VG500Sb59w");
+	gQuery.find({	
+		success: function(results){
+			checkLogin();
+			console.log(results[0].get("title"));
+		}, 
+		error: function(error){
+			console.log("Error: "+error.message);
+		}
+	});
+
     function checkLogin(){
 
     	if (Parse.User.current()) {
@@ -150,7 +162,7 @@
 	function getPosts(){
 		var query = new Parse.Query(Post);
 		query.include("user");
-
+		query.equalTo("user",Parse.User.current());
 		query.find({
 			success: function(results){
 				var output = "";
