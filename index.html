@@ -160,10 +160,22 @@
 					var user = results[i].get("user");
 					var username = user.get("username");
 
+					//console.log(results[i].get("file"));
 					//console.log("Title: " + title);
+
+					var img="";
+					//validates if the post has a file
+					if (results[i].get("file")){
+						var file = results[i].get("file");
+						var url = file.url();
+						//console.log("url: "+url);
+						img = "<img src='"+url+"' style='width:60px;height:60px'>";
+					}
+
 					output += "<li>";
 					output += "<h3>"+title+"</h3>";
-					output += "<h6>"+"user: "+username+"</h6>";
+					output += "<small>"+"user: "+username+"</small> </br>";
+					output += img;
 					output += "<p>"+content+"</p>";
 					output += "</li>";
 				}
