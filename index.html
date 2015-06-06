@@ -71,6 +71,15 @@
 	</form>
 	
 
+    <h1>Detail listing example </h1>
+
+    <div id="post-detail">
+    	<h1 id="post-detail-title"></h1>
+    	<small id="post-detail-author"></small>
+    	<p id="post-detail-content"></p>
+    </div>
+
+
     <h1>Listing Example</h1>
 	
 	<ul id="list-posts">
@@ -158,15 +167,54 @@
 
 	});
 	
+    //If someone clicks the list-posts, on an anchor "a", execute the function
+    $("#list-posts").on("click", "a", function (event){
+    	event.preventDefault();
+    	var id = $(this).attr("href"); //we get the value from the attribute href
+    	var query = new Parse.Query(Post);
+    	query.equalTo("objectId", id);
+    	query.include("user");
+    	query.find({
+			success: function(results){
+				var output = "";
+					var title = results[0].get("title");
+					var content = results[0].get("content");
+					var user = results[0].get("user");
+					var username = user.get("username");
+					var id = results[0].id;
+
+					var img="";
+					//validates if the post has a file
+					if (results[0].get("file")){
+						var file = results[0].get("file");
+						var url = file.url();
+						//console.log("url: "+url);
+						img = "<img src='"+url+"' style='width:60px;height:60px'>";
+					}
+
+					$("#post-detail-title").html(title);
+					$("#post-detail-author").html(username);
+					$("#post-detail-content").html(content);
+					$("#post-detail").attr("data-id", id);
+
+				console.log(output);
+			},
+			error: function(error){
+				console.log("Query error:"+error.message)
+			}			
+		});
+    });
+
+
 	//Example for getting data from Parse
 	function getPosts(){
 		var query = new Parse.Query(Post);
 		query.include("user");
-		query.equalTo("user",Parse.User.current());
 		query.find({
 			success: function(results){
 				var output = "";
 				for(var i in results){
+					var postId = results[i].id; //another way to get the objectId
 					var title = results[i].get("title");
 					var content = results[i].get("content");
 					var user = results[i].get("user");
@@ -185,10 +233,8 @@
 					}
 
 					output += "<li>";
-					output += "<h3>"+title+"</h3>";
-					output += "<small>"+"user: "+username+"</small> </br>";
-					output += img;
-					output += "<p>"+content+"</p>";
+					output += "<h3><a href='"+postId+"'>"+title+"</a></h3>";
+					
 					output += "</li>";
 				}
 				$("#list-posts").html(output);
