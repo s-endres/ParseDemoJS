@@ -53,7 +53,7 @@
 	</form>
 
 
-    <h1>Form Example</h1>
+    <h1>Post Form Example</h1>
 
     <form id="post-form">
 		<p>
@@ -61,6 +61,9 @@
 		</p>
 		<p>
 			<textarea id="post-content"></textarea>
+		</p>
+		<p>
+			<input id="post-file" type="file">
 		</p>
 		<p>
 			<input id="post-submit" type="submit">
@@ -146,15 +149,21 @@
 	//Example for getting data from Parse
 	function getPosts(){
 		var query = new Parse.Query(Post);
+		query.include("user");
+
 		query.find({
 			success: function(results){
 				var output = "";
 				for(var i in results){
 					var title = results[i].get("title");
 					var content = results[i].get("content");
+					var user = results[i].get("user");
+					var username = user.get("username");
+
 					//console.log("Title: " + title);
 					output += "<li>";
 					output += "<h3>"+title+"</h3>";
+					output += "<h6>"+"user: "+username+"</h6>";
 					output += "<p>"+content+"</p>";
 					output += "</li>";
 				}
@@ -165,27 +174,59 @@
 			}			
 		});
 		
-	};
-	
+	};	
 	getPosts();
 
-	//Example of a form submit
+	//Example of a form submit, load files and associated user
     $("#post-form").submit(function(event){
 		event.preventDefault();
 		var title = $("#post-title").val();
 		var content = $("#post-content").val();
-		
+		var user = Parse.User.current();
+
 		var newPost = new Post();
 		newPost.set("title", title);
 		newPost.set("content", content);
-		newPost.save({
-			success: function(){
-				getPosts();		
-			},
-			error: function(error){
-				console.log("Error:"+error.message)
-			}		
-		});		
+		newPost.set("user", user);
+
+		// Get file from form input
+		var fileElement = $("#post-file")[0];
+		var filePath = $("#post-file").val();
+		var fileName = filePath.split("\\").pop();
+
+		// If there is a file we proceed to add it to the post
+		if (fileElement.files.length > 0) {
+			var file = fileElement.files[0];
+			var newFile = new Parse.File(fileName, file);
+			newFile.save({
+				success: function(){
+
+				},
+				error: function(file, error){
+					console.log("File Error:"+error.message)
+				}
+			}).then(function(Thefile){
+				newPost.set("file", Thefile);
+
+				newPost.save({
+					success: function(){
+						getPosts();		
+					},
+					error: function(error){
+						console.log("Error:"+error.message)
+					}		
+				});	
+			});
+		}else{
+			newPost.save({
+				success: function(){
+					getPosts();		
+				},
+				error: function(error){
+					console.log("Error:"+error.message)
+				}		
+			});
+		}
 	});
 	
 	
